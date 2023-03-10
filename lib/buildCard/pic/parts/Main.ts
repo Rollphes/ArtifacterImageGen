@@ -8,7 +8,7 @@ import sharp from 'sharp'
 //   ArtifactShoes,
 // } from '@/lib/buildCard/pic/parts/Artifact'
 import { BaseImage } from '@/lib/buildCard/pic/parts/BaseImage'
-// import { Level } from '@/lib/buildCard/pic/parts/Level'
+import { Level } from '@/lib/buildCard/pic/parts/Level'
 // import { SetBonus } from '@/lib/buildCard/pic/parts/SetBonus'
 // import { Skill } from '@/lib/buildCard/pic/parts/Skill'
 // import { Status } from '@/lib/buildCard/pic/parts/Status'
@@ -43,7 +43,7 @@ export class Main implements PartsConfigTypes {
 
   readonly parts = [
     new BaseImage(),
-    // new Level(),
+    new Level(),
     // new Weapon(),
     // new Skill(),
     // new Talent(),
