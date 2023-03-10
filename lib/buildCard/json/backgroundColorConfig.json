@@ -1,0 +1,109 @@
+{
+  "colorBackground": {
+    "Cryo": "#15557a",
+    "Anemo": "#185c5c",
+    "Electro": "#451e6d",
+    "Hydro": "#153479",
+    "Geo": "#5e3d0f",
+    "Pyro": "#670c0c",
+    "Dendro": "#305d0b"
+  },
+  "artifactBackground": {
+    "Cryo": "#102f43",
+    "Anemo": "#123d3d",
+    "Electro": "#2c1542",
+    "Hydro": "#10244e",
+    "Geo": "#3d2b12",
+    "Pyro": "#411010",
+    "Dendro": "#213d12"
+  },
+  "weaponBackground": {
+    "Cryo": "#154666",
+    "Anemo": "#124e50",
+    "Electro": "#3a165e",
+    "Hydro": "#173061",
+    "Geo": "#4f3612",
+    "Pyro": "#561515",
+    "Dendro": "#285012"
+  },
+  "weaponRarity": {
+    "5": "#d1ba8d",
+    "4": "#8943c3",
+    "3": "#3e75ce",
+    "2": "#26a37e",
+    "1": "#72778b"
+  },
+  "weaponLevelBackground": {
+    "Cryo": "#183e57",
+    "Anemo": "#094247",
+    "Electro": "#31154e",
+    "Hydro": "#102857",
+    "Geo": "#482f0c",
+    "Pyro": "#4e0c0c",
+    "Dendro": "#244709"
+  },
+  "refinementRankBackground": {
+    "Cryo": "#183e57",
+    "Anemo": "#094247",
+    "Electro": "#31154e",
+    "Hydro": "#102857",
+    "Geo": "#482f0c",
+    "Pyro": "#4e0c0c",
+    "Dendro": "#244709"
+  },
+  "setBonusBackground": {
+    "Cryo": "#154666",
+    "Anemo": "#124e50",
+    "Electro": "#3a165e",
+    "Hydro": "#173061",
+    "Geo": "#4f3612",
+    "Pyro": "#561515",
+    "Dendro": "#285012"
+  },
+  "setBonusLine": {
+    "Cryo": "#183e57",
+    "Anemo": "#094247",
+    "Electro": "#31154e",
+    "Hydro": "#102857",
+    "Geo": "#482f0c",
+    "Pyro": "#4e0c0c",
+    "Dendro": "#244709"
+  },
+  "nameLvBackground": {
+    "Cryo": "#102f43",
+    "Anemo": "#123d3d",
+    "Electro": "#291542",
+    "Hydro": "#152055",
+    "Geo": "#3d3312",
+    "Pyro": "#411010",
+    "Dendro": "#213d12"
+  },
+  "totalScoreBackground": {
+    "Cryo": "#154666",
+    "Anemo": "#124e50",
+    "Electro": "#3a165e",
+    "Hydro": "#173061",
+    "Geo": "#4f3612",
+    "Pyro": "#561515",
+    "Dendro": "#285012"
+  },
+  "totalScoreLine": {
+    "Cryo": "#183e57",
+    "Anemo": "#094247",
+    "Electro": "#31154e",
+    "Hydro": "#102857",
+    "Geo": "#482f0c",
+    "Pyro": "#4e0c0c",
+    "Dendro": "#244709"
+  },
+  "talentBackground": {
+    "Cryo": "#5beeff",
+    "Anemo": "#5dffe2",
+    "Electro": "#cb4eff",
+    "Hydro": "#53d0ff",
+    "Geo": "#ffc000",
+    "Pyro": "#ff8569",
+    "Dendro": "#bbff13"
+  },
+  "skillLvBackground": "#1B1B1B"
+}
