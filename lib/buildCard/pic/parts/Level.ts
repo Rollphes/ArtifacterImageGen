@@ -58,7 +58,7 @@ export class Level implements PartsConfigTypes {
     return {
       input: buffer,
       top: 75,
-      left: 71,
+      left: 73,
     }
   }
 
