@@ -4,7 +4,6 @@ import { Character } from '@/lib/buildCard/pic/parts/BaseImage/Character'
 import { Love } from '@/lib/buildCard/pic/parts/BaseImage/Love'
 import { NameLv } from '@/lib/buildCard/pic/parts/BaseImage/NameLv'
 import { Shadow } from '@/lib/buildCard/pic/parts/BaseImage/Shadow'
-import { SkillBackground } from '@/lib/buildCard/pic/parts/BaseImage/SkillBackground'
 import {
   PartsConfigTypes,
   Position,
@@ -17,13 +16,7 @@ export class BaseImage implements PartsConfigTypes {
     top: 0,
     left: 0,
   }
-  readonly parts = [
-    new Character(),
-    new Shadow(),
-    new NameLv(),
-    new Love(),
-    new SkillBackground(),
-  ]
+  readonly parts = [new Character(), new Shadow(), new NameLv(), new Love()]
 
   async partsCreate(avatarInfo: AvatarInfo) {
     const element: string = avatarInfo.avatar.element

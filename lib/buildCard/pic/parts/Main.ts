@@ -10,7 +10,7 @@ import sharp from 'sharp'
 import { BaseImage } from '@/lib/buildCard/pic/parts/BaseImage'
 import { Level } from '@/lib/buildCard/pic/parts/Level'
 // import { SetBonus } from '@/lib/buildCard/pic/parts/SetBonus'
-// import { Skill } from '@/lib/buildCard/pic/parts/Skill'
+import { Skill } from '@/lib/buildCard/pic/parts/Skill'
 // import { Status } from '@/lib/buildCard/pic/parts/Status'
 import { Talent } from '@/lib/buildCard/pic/parts/Talent'
 // import { TotalScore } from '@/lib/buildCard/pic/parts/TotalScore'
@@ -45,7 +45,7 @@ export class Main implements PartsConfigTypes {
     new BaseImage(),
     new Level(),
     // new Weapon(),
-    // new Skill(),
+    new Skill(),
     new Talent(),
     // new SetBonus(),
     // new TotalScore(), //TODO:数値以外なら出来る
