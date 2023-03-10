@@ -1,0 +1,42 @@
+{
+  "name": "artifacter-discord-bot",
+  "version": "0.1.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "ts-node -r tsconfig-paths/register bin/index.ts",
+    "lint": "eslint .",
+    "debug": "node --max-old-space-size=460 --expose-gc --inspect -r tsconfig-paths/register -r ts-node/register bin/index.ts"
+  },
+  "engines": {
+    "node": "16.x"
+  },
+  "keywords": [],
+  "author": "Rollphes",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.7.1",
+    "fs": "^0.0.1-security",
+    "node-fetch": "^2.6.1",
+    "sharp": "^0.30.7",
+    "text-to-svg": "^3.1.5",
+    "text2png": "^2.3.0",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.2",
+    "undici": "^5.14.0"
+  },
+  "devDependencies": {
+    "@types/node": "^15.12.1",
+    "@types/node-fetch": "^2.5.11",
+    "@types/sharp": "^0.30.5",
+    "@types/text-to-svg": "^3.1.1",
+    "@types/validator": "^13.7.4",
+    "@typescript-eslint/eslint-plugin": "^4.28.1",
+    "@typescript-eslint/parser": "^4.28.1",
+    "eslint": "^7.29.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-simple-import-sort": "^7.0.0",
+    "prettier": "^2.3.2",
+    "tsconfig-paths": "^3.9.0"
+  }
+}
