@@ -12,6 +12,10 @@
 ## 注意点(更新について)
 バージョン毎にファイルを更新する必要があり、./lib/enkaManager/json内のjsonファイルを[Enka.network](https://github.com/EnkaNetwork/API-docs)が提供しているstore内のjsonファイル(最新状態)に更新する必要があります<br>
 
+## 必要環境変数
+BOT_TOKEN　=>　DiscordのBOTトークンです。<br>
+build_channel => 導入サーバーのパネルを設置するチャンネルIDです。開発者モードをONにして入手ください。
+
 ## 実行方法
 初回起動(導入含む)
 ```
