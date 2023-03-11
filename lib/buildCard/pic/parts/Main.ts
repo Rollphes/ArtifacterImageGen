@@ -9,12 +9,11 @@ import sharp from 'sharp'
 // } from '@/lib/buildCard/pic/parts/Artifact'
 import { BaseImage } from '@/lib/buildCard/pic/parts/BaseImage'
 import { Level } from '@/lib/buildCard/pic/parts/Level'
-// import { SetBonus } from '@/lib/buildCard/pic/parts/SetBonus'
+import { SetBonus } from '@/lib/buildCard/pic/parts/SetBonus'
 import { Skill } from '@/lib/buildCard/pic/parts/Skill'
 import { Status } from '@/lib/buildCard/pic/parts/Status'
 import { Talent } from '@/lib/buildCard/pic/parts/Talent'
 // import { TotalScore } from '@/lib/buildCard/pic/parts/TotalScore'
-// import { Uid } from '@/lib/buildCard/pic/parts/Uid'
 // import { Weapon } from '@/lib/buildCard/pic/parts/Weapon'
 import {
   PartsConfigTypes,
@@ -47,10 +46,9 @@ export class Main implements PartsConfigTypes {
     // new Weapon(),
     new Skill(),
     new Talent(),
-    // new SetBonus(),
+    new SetBonus(),
     // new TotalScore(), //TODO:数値以外なら出来る
     new Status(),
-    // new Uid(),
     // new ArtifactBracer(),
     // new ArtifactNecklace(),
     // new ArtifactShoes(),
