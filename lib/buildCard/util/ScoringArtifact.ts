@@ -2,9 +2,7 @@ import { Artifact, ItemStats, PropType } from '@/lib/enkaManager'
 
 const correctionStatsValue = (stats: ItemStats) => {
   if (stats.propType == 'FIGHT_PROP_CRITICAL') return stats.value * 2
-  if (stats.propType == 'FIGHT_PROP_DEFENSE_PERCENT') return stats.value * 0.8
   if (stats.propType == 'FIGHT_PROP_ELEMENT_MASTERY') return stats.value * 0.25
-  if (stats.propType == 'FIGHT_PROP_CHARGE_EFFICIENCY') return stats.value * 0.9
   return stats.value
 }
 export type ScoringType = 'ATK' | 'DEF' | 'HP' | 'EM' | 'ER'
