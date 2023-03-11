@@ -30,5 +30,5 @@ npm run start
 npm run start
 ```
 
-##偉大なるArtifacter製作者様
-[Hyugo](https://twitter.com/hyugo_genshin)
+## 偉大なるArtifacter製作者様
+[Hyugoさん(Twitter)](https://twitter.com/hyugo_genshin)
