@@ -108,7 +108,7 @@ export class WeaponMain implements PartsConfigTypes {
     subStat: ItemStats
   ): Promise<OverlayOptions> {
     const statPropType = subStat.propType
-    const statName = subStat.name
+    const statName = subStat.name.replace('元素チャージ効率', '元チャ効率')
 
     const backgroundBuffer: Buffer = this.getStatBackground()
 
