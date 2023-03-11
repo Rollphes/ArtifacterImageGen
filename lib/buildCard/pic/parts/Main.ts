@@ -11,7 +11,7 @@ import { BaseImage } from '@/lib/buildCard/pic/parts/BaseImage'
 import { Level } from '@/lib/buildCard/pic/parts/Level'
 // import { SetBonus } from '@/lib/buildCard/pic/parts/SetBonus'
 import { Skill } from '@/lib/buildCard/pic/parts/Skill'
-// import { Status } from '@/lib/buildCard/pic/parts/Status'
+import { Status } from '@/lib/buildCard/pic/parts/Status'
 import { Talent } from '@/lib/buildCard/pic/parts/Talent'
 // import { TotalScore } from '@/lib/buildCard/pic/parts/TotalScore'
 // import { Uid } from '@/lib/buildCard/pic/parts/Uid'
@@ -49,7 +49,7 @@ export class Main implements PartsConfigTypes {
     new Talent(),
     // new SetBonus(),
     // new TotalScore(), //TODO:数値以外なら出来る
-    // new Status(), //TODO:数値以外なら行ける
+    new Status(),
     // new Uid(),
     // new ArtifactBracer(),
     // new ArtifactNecklace(),
