@@ -37,9 +37,9 @@ export class TotalScore implements PartsConfigTypes {
     const artifactScores: number[] = artifacts.map((artifact) =>
       scoringArtifact(artifact, type)
     )
-    const totalScore: number = Math.floor(
-      artifactScores.reduce((sum, val) => sum + val, 0)
-    )
+    const totalScore: number = +artifactScores
+      .reduce((sum, val) => sum + val, 0)
+      .toFixed(1)
 
     const backgroundBuffer: Buffer = this.getBackgroundBuffer()
 
