@@ -27,14 +27,11 @@ export class Status implements PartsConfigTypes {
       fightProp
     )
 
-    const stepTop = 71
-
     const compositeArray: OverlayOptions[] = []
 
     compositeArray.push(
       await this.getBaseStatOverlayOptions(
         0,
-        stepTop,
         'FIGHT_PROP_HP',
         fightProp.MaxHP || 0,
         fightProp.BaseHP || 0,
@@ -45,7 +42,6 @@ export class Status implements PartsConfigTypes {
     compositeArray.push(
       await this.getBaseStatOverlayOptions(
         1,
-        stepTop,
         'FIGHT_PROP_ATTACK',
         fightProp.ATK || 0,
         fightProp.BaseATK || 0,
@@ -56,7 +52,6 @@ export class Status implements PartsConfigTypes {
     compositeArray.push(
       await this.getBaseStatOverlayOptions(
         2,
-        stepTop,
         'FIGHT_PROP_DEFENSE',
         fightProp.DEF || 0,
         fightProp.BaseDEF || 0,
@@ -67,7 +62,6 @@ export class Status implements PartsConfigTypes {
     compositeArray.push(
       await this.getStatOverlayOptions(
         3,
-        stepTop,
         'FIGHT_PROP_ELEMENT_MASTERY',
         fightProp.ElementalMastery
       )
@@ -75,7 +69,6 @@ export class Status implements PartsConfigTypes {
     compositeArray.push(
       await this.getStatOverlayOptions(
         4,
-        stepTop,
         'FIGHT_PROP_CRITICAL',
         (fightProp.CRITRate || 0) * 100
       )
@@ -83,7 +76,6 @@ export class Status implements PartsConfigTypes {
     compositeArray.push(
       await this.getStatOverlayOptions(
         5,
-        stepTop,
         'FIGHT_PROP_CRITICAL_HURT',
         (fightProp.CRITDMG || 0) * 100
       )
@@ -91,7 +83,6 @@ export class Status implements PartsConfigTypes {
     compositeArray.push(
       await this.getStatOverlayOptions(
         6,
-        stepTop,
         'FIGHT_PROP_CHARGE_EFFICIENCY',
         (fightProp.EnergyRecharge || 0) * 100
       )
@@ -99,7 +90,6 @@ export class Status implements PartsConfigTypes {
     compositeArray.push(
       await this.getStatOverlayOptions(
         7,
-        stepTop,
         DMGBonusType,
         DMGBonusValue,
         DMGBonusName
@@ -117,7 +107,6 @@ export class Status implements PartsConfigTypes {
 
   private async getBaseStatOverlayOptions(
     index: number,
-    stepTop: number,
     type: PropType,
     resultValue: number,
     baseValue: number,
@@ -147,14 +136,13 @@ export class Status implements PartsConfigTypes {
       .toBuffer()
     return {
       input: buffer,
-      top: stepTop * index,
+      top: 71 * index,
       left: 0,
     }
   }
 
   private async getStatOverlayOptions(
     index: number,
-    stepTop: number,
     type: PropType,
     value?: number,
     name?: string
@@ -175,7 +163,7 @@ export class Status implements PartsConfigTypes {
       .toBuffer()
     return {
       input: buffer,
-      top: stepTop * index,
+      top: 71 * index,
       left: 0,
     }
   }
