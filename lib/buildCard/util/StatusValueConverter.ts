@@ -9,8 +9,8 @@ export const convertStatValue = (
     ? new Intl.NumberFormat('ja', {
         maximumFractionDigits: 1,
         minimumFractionDigits: 1,
-      }).format(value + 0) + '%'
+      }).format(Math.abs(value)) + '%'
     : new Intl.NumberFormat('ja', {
         maximumFractionDigits: 0,
-      }).format(value + 0)
+      }).format(Math.abs(value))
 }
