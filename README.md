@@ -20,7 +20,7 @@ build_channel => 導入サーバーのパネルを設置するチャンネルID�
 ## 実行方法
 初回起動(導入含む)
 ```
-npm clone https://github.com/Rollphes/ArtifacterImageGen.git
+git clone https://github.com/Rollphes/ArtifacterImageGen.git
 cd ArtifacterImageGen
 npm install
 npm run start
