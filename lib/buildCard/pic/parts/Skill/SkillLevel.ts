@@ -23,7 +23,7 @@ export class SkillLevel implements PartsConfigTypes {
 
     const compositeArray: OverlayOptions[] = []
 
-    skills.map((skill, index) => {
+    skills.forEach((skill, index) => {
       compositeArray.push(this.getLvOverlayOptions(skill, this.topList[index]))
     })
 
