@@ -13,7 +13,7 @@ import { SetBonus } from '@/lib/buildCard/pic/parts/SetBonus'
 import { Skill } from '@/lib/buildCard/pic/parts/Skill'
 import { Status } from '@/lib/buildCard/pic/parts/Status'
 import { Talent } from '@/lib/buildCard/pic/parts/Talent'
-// import { TotalScore } from '@/lib/buildCard/pic/parts/TotalScore'
+import { TotalScore } from '@/lib/buildCard/pic/parts/TotalScore'
 // import { Weapon } from '@/lib/buildCard/pic/parts/Weapon'
 import {
   PartsConfigTypes,
@@ -47,7 +47,7 @@ export class Main implements PartsConfigTypes {
     new Skill(),
     new Talent(),
     new SetBonus(),
-    // new TotalScore(), //TODO:数値以外なら出来る
+    new TotalScore(),
     new Status(),
     // new ArtifactBracer(),
     // new ArtifactNecklace(),
