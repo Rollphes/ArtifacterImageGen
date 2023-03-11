@@ -14,7 +14,7 @@ import { Skill } from '@/lib/buildCard/pic/parts/Skill'
 import { Status } from '@/lib/buildCard/pic/parts/Status'
 import { Talent } from '@/lib/buildCard/pic/parts/Talent'
 import { TotalScore } from '@/lib/buildCard/pic/parts/TotalScore'
-// import { Weapon } from '@/lib/buildCard/pic/parts/Weapon'
+import { Weapon } from '@/lib/buildCard/pic/parts/Weapon'
 import {
   PartsConfigTypes,
   Position,
@@ -43,7 +43,7 @@ export class Main implements PartsConfigTypes {
   readonly parts = [
     new BaseImage(),
     new Level(),
-    // new Weapon(),
+    new Weapon(),
     new Skill(),
     new Talent(),
     new SetBonus(),
