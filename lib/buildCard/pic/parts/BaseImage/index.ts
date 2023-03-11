@@ -20,7 +20,7 @@ export class BaseImage implements PartsConfigTypes {
 
   async partsCreate(avatarInfo: AvatarInfo) {
     const element: string = avatarInfo.avatar.element
-    return await sharp(`./lib/buildCard/image/Base/${element}.png`)
+    return await sharp(`./lib/buildCard/image/base/${element}.png`)
       .png()
       .toBuffer()
   }
