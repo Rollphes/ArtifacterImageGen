@@ -1,12 +1,12 @@
 import sharp from 'sharp'
 
-// import {
-//   ArtifactBracer,
-//   ArtifactDress,
-//   ArtifactNecklace,
-//   ArtifactRing,
-//   ArtifactShoes,
-// } from '@/lib/buildCard/pic/parts/Artifact'
+import {
+  ArtifactBracer,
+  ArtifactDress,
+  ArtifactNecklace,
+  ArtifactRing,
+  ArtifactShoes,
+} from '@/lib/buildCard/pic/parts/Artifact'
 import { BaseImage } from '@/lib/buildCard/pic/parts/BaseImage'
 import { Level } from '@/lib/buildCard/pic/parts/Level'
 import { SetBonus } from '@/lib/buildCard/pic/parts/SetBonus'
@@ -49,10 +49,10 @@ export class Main implements PartsConfigTypes {
     new SetBonus(),
     new TotalScore(),
     new Status(),
-    // new ArtifactBracer(),
-    // new ArtifactNecklace(),
-    // new ArtifactShoes(),
-    // new ArtifactRing(),
-    // new ArtifactDress(),
+    new ArtifactBracer(),
+    new ArtifactNecklace(),
+    new ArtifactShoes(),
+    new ArtifactRing(),
+    new ArtifactDress(),
   ]
 }
