@@ -1,20 +1,12 @@
 import {
   ApplicationCommandData,
-  ApplicationCommandOptionType,
   ApplicationCommandType,
-  Attachment,
   ChatInputCommandInteraction,
   Client,
-  EmbedBuilder,
   Guild,
-  Message,
   MessageContextMenuCommandInteraction,
-  PermissionFlagsBits,
-  TextInputStyle,
   UserContextMenuCommandInteraction,
 } from 'discord.js'
-
-import { CustomModalBuilder } from '@/lib/interaction'
 
 type executeTypes =
   | {
@@ -36,21 +28,7 @@ export type CustomApplicationCommandData = ApplicationCommandData & {
   deferReply?: boolean
 } & executeTypes
 
-export const commandDatas: CustomApplicationCommandData[] = [
-  {
-    name: 'embed',
-    description: 'Embed送信(Json)',
-    deferReply: false,
-    defaultMemberPermissions: PermissionFlagsBits.Administrator,
-    execute: async (interaction) => {
-      if (interaction.user.id != BOT_CREATOR_ID) {
-        await interaction.reply(`このコマンドは管理者用だぞ!!`)
-        return
-      }
-      await interaction.showModal(embedCommandModal(interaction.client))
-    },
-  },
-]
+export const commandDatas: CustomApplicationCommandData[] = []
 export default async (client: Client, guild: Guild) => {
   await guild.commands.set(commandDatas)
 }
