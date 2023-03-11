@@ -57,7 +57,7 @@ export const searchActiveSetBonus = (
 
   const setNames: { [key: string]: string } = {}
   artifacts.forEach((artifact) => {
-    setNames[artifact.itemId] = artifact.setName
+    setNames[getArtifactSetId(artifact)] = artifact.setName
   })
 
   const setBonusActiveArtifactIds: string[] = Object.keys(countIds)
@@ -76,6 +76,6 @@ export const searchActiveSetBonus = (
     })
 
   return setBonusActiveArtifactIds.map((id) => {
-    return new SetBonus(client, +id, setNames[+id], countIds[id])
+    return new SetBonus(client, +id, setNames[id], countIds[id])
   })
 }
