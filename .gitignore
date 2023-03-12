@@ -10,6 +10,8 @@ yarn-error.log
 
 /lib/buildCard/image/cache/*
 
+!/lib/buildCard/image/cache/sample-cache.png
+
 !/lib/enkaManager/ui/UI_Gacha_AvatarImg_PlayerBoy.png
 
 !/lib/enkaManager/ui/UI_Gacha_AvatarImg_PlayerGirl.png
