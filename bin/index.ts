@@ -40,7 +40,7 @@ client.on('ready', async () => {
   }
 
   console.log('[2/2]deploy panel module...')
-  client.enkaNetwork.deploy()
+  client.enkaManager.deploy()
   await client.buildCardPanel.deploy()
 
   client.user?.edit({})
@@ -48,7 +48,7 @@ client.on('ready', async () => {
     `BOTが正常に起動したよ！(Ver: ${packageJson.version})`,
     {
       type: ActivityType.Playing,
-    }
+    },
   )
   console.log('botを正常に起動しました')
 })

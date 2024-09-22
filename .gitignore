@@ -6,16 +6,18 @@ yarn-error.log
 
 /.vscode
 
-/lib/enkaManager/ui/*
-
 /lib/buildCard/image/cache/*
 
 !/lib/buildCard/image/cache/sample-cache.png
 
-!/lib/enkaManager/ui/UI_Gacha_AvatarImg_PlayerBoy.png
-
-!/lib/enkaManager/ui/UI_Gacha_AvatarImg_PlayerGirl.png
-
 package-lock.json
 
+yarn.lock
+
+/test
+
 buildCard.log
+
+/cache
+
+/test.png

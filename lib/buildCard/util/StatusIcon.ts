@@ -1,7 +1,18 @@
-import { statusIcon } from '@/lib/buildCard/json/iconConfig.json'
-import { PropType } from '@/lib/enkaManager'
+import { FightPropType } from 'genshin-manager'
 
-export const statusIconSVG = (value: PropType): string => {
+import { statusIcon } from '@/lib/buildCard/json/iconConfig.json'
+
+/**
+ *
+ * 元々のアイコンサイズは14*14なのでiconSize/14の値を入れること
+ * @param value
+ * @param iconScale
+ * @returns
+ */
+export function statusIconPath(
+  value: FightPropType,
+  iconScale: number,
+): string {
   let key: keyof typeof statusIcon
   switch (value) {
     case 'FIGHT_PROP_HP':
@@ -62,5 +73,5 @@ export const statusIconSVG = (value: PropType): string => {
       key = 'ATK'
       break
   }
-  return statusIcon[key]
+  return statusIcon[key].replace(/scale\(1\)/g, `scale(${iconScale})`)
 }

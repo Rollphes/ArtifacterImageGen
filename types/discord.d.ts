@@ -1,6 +1,7 @@
+import { EnkaManager } from 'genshin-manager'
+
 import { CustomApplicationCommandData } from '@/handler/appCommands'
 import { BuildCardPanel } from '@/lib/BuildCardPanel'
-import { CustomEnkaNetwork } from '@/lib/CustomEnkaManager'
 import { InteractionExecute } from '@/lib/interaction'
 
 declare module 'discord.js' {
@@ -8,7 +9,7 @@ declare module 'discord.js' {
     inputCache: Map<number, number>
     commandList: CustomApplicationCommandData[]
     interactionExecute: InteractionExecute
-    enkaNetwork: CustomEnkaNetwork
+    enkaManager: EnkaManager
     buildCardPanel: BuildCardPanel
   }
 }

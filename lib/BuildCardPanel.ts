@@ -5,42 +5,78 @@ import {
   Client,
   EmbedBuilder,
   SelectMenuComponentOptionData,
+  StringSelectMenuInteraction,
   TextChannel,
   TextInputStyle,
 } from 'discord.js'
+import { GuildMemberRoleManager } from 'discord.js'
 import fs from 'fs'
-
 import {
-  convertStatValue,
-  Main,
-  PartsCreator,
-  ScoringType,
-} from '@/lib/buildCard'
-import {
-  AvatarInfo,
-  FightPropKeys,
-  PlayerInfo,
-  PropType,
+  CharacterDetail,
+  Element,
+  EnkaData,
+  EnkaManager,
+  EnkaManagerError,
+  EnkaNetworkError,
+  FightPropType,
+  PlayerDetail,
   Weapon,
-} from '@/lib/enkaManager'
+} from 'genshin-manager'
+
+import { BuildCard, ScoringType } from '@/lib/buildCard'
+import { PartsCreator } from '@/lib/imageCreator'
 import {
   CustomButtonBuilder,
   CustomModalBuilder,
   CustomStringSelectMenuBuilder,
 } from '@/lib/interaction'
-import { findGuildTextChannel, getFirstMessage } from '@/lib/util'
+import { env, getFirstMessage } from '@/lib/util'
 
 export class BuildCardPanel {
-  private readonly BUILD_CHANNEL_ID = process.env.build_channel as string
-  private readonly client: Client
-  private buildChannel?: TextChannel
-  private mainParts = new Main()
+  public enkaManager: EnkaManager = new EnkaManager()
+  private inputCache: Map<string, string> = new Map()
 
-  constructor(client: Client) {
-    this.client = client
+  private buildChannel?: TextChannel
+  private secretSelectLogger: Map<string, number[]> = new Map()
+
+  constructor(private readonly client: Client) {}
+
+  public async deploy(): Promise<void> {
+    this.buildChannel = (await this.client.channels
+      .fetch(env.BUILD_CHANNEL_ID)
+      .catch(() => {})) as TextChannel
+    if (!this.buildChannel) return
+    const messageToGenerateCard = await getFirstMessage(
+      this.buildChannel.messages,
+    )
+    const embedToGenerateCard = new EmbedBuilder()
+      .setTitle('📇ビルドカード')
+      .setDescription(
+        '### ⚖スコア計算式\n' +
+          '> 本機能ではスコア平滑化の為、以下のように計算式を調整しています。\n' +
+          '> `スコア = 会心率×2 + 会心ダメージ + HP`\n' +
+          '> `スコア = 会心率×2 + 会心ダメージ + 攻撃力`\n' +
+          '> `スコア = 会心率×2 + 会心ダメージ + 防御力×0.8`\n' +
+          '> `スコア = 会心率×2 + 会心ダメージ + 元素熟知×0.25`\n' +
+          '> `スコア = 会心率×2 + 会心ダメージ + 元素チャージ×0.9`\n',
+      )
+    const messageOption = {
+      embeds: [embedToGenerateCard],
+      components: [
+        new ActionRowBuilder<CustomButtonBuilder>().addComponents([
+          this.createButton(),
+        ]),
+      ],
+    }
+    if (!messageToGenerateCard || !messageToGenerateCard.author.bot) {
+      await this.buildChannel.bulkDelete(100)
+      await this.buildChannel.send(messageOption)
+    } else {
+      await messageToGenerateCard.edit(messageOption)
+    }
   }
 
-  private uidInputModal(userId: string) {
+  private uidInputModal(userId: string): CustomModalBuilder {
     const uid = this.client.inputCache.get(+userId)
     return new CustomModalBuilder(this.client, {
       customId: 'buildCard-uidInputModal',
@@ -53,104 +89,105 @@ export class BuildCardPanel {
               label: '原神のUIDを記入ください',
               style: TextInputStyle.Short,
               minLength: 9,
-              maxLength: 9,
+              maxLength: 10,
               required: true,
               value: uid ? String(uid) : undefined,
             },
           ],
         },
       ],
-      execute: async (interaction) => {
+      execute: async (interaction): Promise<void> => {
+        this.secretSelectLogger.delete(interaction.user.id)
+
         await interaction.deferReply({ ephemeral: true })
         if (!interaction.guild || !interaction.member) return
         const inputUid = interaction.fields.getTextInputValue('InputUID')
 
-        if (
-          isNaN(+inputUid) ||
-          +inputUid < 100000000 ||
-          +inputUid > 999999999
-        ) {
+        if (isNaN(+inputUid) || !/1?\d{9}/.test(inputUid)) {
           await interaction.editReply(
-            'UIDが正しく無いぞ!もう一度最初からやり直してくれよな!!'
+            'UIDが正しく無いぞ!もう一度最初からやり直してくれよな!!',
           )
           return
         }
 
-        const enkaData = await interaction.client.enkaNetwork.validationFetch(
-          +inputUid
-        )
-
+        const embed = new EmbedBuilder()
+        const enkaData = await this.enkaFetch(+inputUid)
         if (enkaData instanceof EmbedBuilder) {
           await interaction.editReply({
-            content: '',
             embeds: [enkaData],
+            components: [],
+            files: [],
           })
           return
         }
 
         this.client.inputCache.set(+interaction.member.user.id, +inputUid)
 
-        if (!enkaData.avatarInfoList) {
-          const embed = new EmbedBuilder()
+        if (enkaData.characterDetails.length > 0) {
+          embed
+            .setTitle(enkaData.playerDetail.nickname)
+            .setDescription(enkaData.playerDetail.signature || '未設定')
+            .setThumbnail(enkaData.playerDetail.profilePicture.icon.url)
+            .setImage(enkaData.playerDetail.nameCard.pictures[1].url)
+            .setFields(
+              {
+                name: '世界ランク',
+                value: `${enkaData.playerDetail.worldLevel}`,
+                inline: true,
+              },
+              {
+                name: '冒険ランク',
+                value: `${enkaData.playerDetail.level}`,
+                inline: true,
+              },
+              {
+                name: 'アチーブメント',
+                value: `${enkaData.playerDetail.finishAchievementNum}`,
+                inline: true,
+              },
+            )
+            .setTimestamp(enkaData.nextShowCaseDate)
+            .setFooter({
+              text: `Powered by Enka.Network:データ更新予定時刻`,
+            })
+          await interaction.editReply({
+            content: '',
+            embeds: [embed],
+            components: [
+              new ActionRowBuilder<CustomStringSelectMenuBuilder>().addComponents(
+                [this.characterSelectMenu(enkaData.characterDetails)],
+              ),
+            ],
+          })
+        } else {
+          embed
             .setTitle('🚫プロフィールが未公開又は未設定です')
             .setDescription(
-              'プロフィールが設定されていないか非表示に設定されているぞ!!\nこの状態だとビルドカードは生成出来ないから再設定しれくれよな!!'
+              'プロフィールが設定されていないか非表示に設定されているぞ!!\nこの状態だとビルドカードは生成出来ないから再設定しれくれよな!!',
             )
             .setFields({ name: 'UID', value: `${inputUid}` })
-            .setFooter({ text: `Powered by Enka.Network` })
             .setImage('attachment://Howto.png')
+            .setFooter({ text: `Powered by Enka.Network` })
           await interaction.editReply({
             embeds: [embed],
             files: ['./lib/buildCard/image/Howto.png'],
           })
-          return
         }
-
-        const playerData = enkaData.playerInfo
-        if (!playerData) return
-        const avatarIcon = playerData.profilePicture.iconURL
-        const embed = new EmbedBuilder()
-          .setTitle(playerData.nickname)
-          .setDescription(playerData.signature || '未設定')
-          .setThumbnail(avatarIcon)
-          .setImage(playerData.nameCard.iconURL)
-          .setFields(
-            {
-              name: '世界ランク',
-              value: `${playerData.worldLevel || 0}`,
-              inline: true,
-            },
-            { name: '冒険ランク', value: `${playerData.level}`, inline: true },
-            {
-              name: 'アチーブメント',
-              value: `${playerData.finishAchievementNum || 0}`,
-              inline: true,
-            }
-          )
-          .setFooter({ text: `Powered by Enka.Network` })
-
-        await interaction.editReply({
-          content: '',
-          embeds: [embed],
-          components: [
-            new ActionRowBuilder<CustomStringSelectMenuBuilder>().addComponents(
-              [this.characterSelectMenu(enkaData.avatarInfoList)]
-            ),
-          ],
-        })
       },
     })
   }
 
-  private characterSelectMenu(avatarInfoList: AvatarInfo[]) {
-    const characterSelectMenuOption = avatarInfoList.map(
+  private characterSelectMenu(
+    characterDetails: CharacterDetail[],
+  ): CustomStringSelectMenuBuilder {
+    const characterSelectMenuOption = characterDetails.map(
       (character, index): SelectMenuComponentOptionData => {
         return {
-          label: character.avatar.name,
+          label: character.name,
           description: `Lv${character.level}`,
           value: String(index),
         }
-      }
+      },
     )
     return new CustomStringSelectMenuBuilder(this.client, {
       customId: 'buildCard-characterSelectMenu',
@@ -158,29 +195,56 @@ export class BuildCardPanel {
       minValues: 1,
       maxValues: 1,
       options: characterSelectMenuOption,
-      execute: async (interaction) => {
+      execute: async (interaction): Promise<void> => {
         await interaction.deferUpdate()
         if (!interaction.guild) return
         if (!interaction.member) return
-        const uid = this.client.inputCache.get(+interaction.member.user.id)
-        if (!uid) return
-        const enkaData = this.client.enkaNetwork.cache.get(uid)
-        if (!enkaData || !enkaData.avatarInfoList || !enkaData.playerInfo)
+        const enkaData = await this.enkaFetch(+interaction.member.user.id)
+        if (enkaData instanceof EmbedBuilder) {
+          await interaction.editReply({
+            embeds: [enkaData],
+            components: [],
+            files: [],
+          })
           return
-        if (enkaData.avatarInfoList.length <= +interaction.values[0]) return
-        const character = enkaData.avatarInfoList[+interaction.values[0]]
+        }
+        if (!enkaData.characterDetails.length) {
+          const embed = new EmbedBuilder()
+            .setTitle('🚫プロフィールが未公開又は未設定です')
+            .setDescription(
+              'プロフィールが設定されていないか非表示に設定されているぞ!!\nこの状態だとビルドカードは生成出来ないから再設定しれくれよな!!',
+            )
+            .setFields({
+              name: 'UID',
+              value: `${+interaction.member.user.id}`,
+            })
+            .setImage('attachment://Howto.png')
+            .setFooter({ text: `Powered by Enka.Network` })
+          await interaction.editReply({
+            embeds: [embed],
+            files: ['./lib/buildCard/image/Howto.png'],
+          })
+          return
+        }
+        if (enkaData.characterDetails.length <= +interaction.values[0]) return
+        const character = enkaData.characterDetails[+interaction.values[0]]
 
-        const embed = new CharacterEmbedBuilder(enkaData.playerInfo, character)
+        const embed = new CharacterEmbedBuilder(
+          enkaData.playerDetail,
+          character,
+        )
+
+        this.secretSelectMenuAppend(interaction.user.id, interaction)
 
         await interaction.editReply({
           content: '',
           embeds: [embed],
           components: [
             new ActionRowBuilder<CustomStringSelectMenuBuilder>().addComponents(
-              [this.characterSelectMenu(enkaData.avatarInfoList)]
+              [this.characterSelectMenu(enkaData.characterDetails)],
             ),
             new ActionRowBuilder<CustomStringSelectMenuBuilder>().addComponents(
-              [this.scoringTypeSelectMenu()]
+              [this.scoringTypeSelectMenu()],
             ),
           ],
           files: [],
@@ -189,7 +253,7 @@ export class BuildCardPanel {
     })
   }
 
-  private scoringTypeSelectMenu() {
+  private scoringTypeSelectMenu(): CustomStringSelectMenuBuilder {
     return new CustomStringSelectMenuBuilder(this.client, {
       customId: 'buildCard-scoringTypeSelectMenu',
       placeholder: 'ビルドカードを生成',
@@ -222,115 +286,216 @@ export class BuildCardPanel {
           value: 'ER',
         },
       ],
-      execute: async (interaction) => {
+      execute: async (interaction): Promise<void> => {
+        this.secretSelectLogger.delete(interaction.user.id)
+
         await interaction.deferUpdate()
         if (!interaction.message.embeds.length) return
         const characterName = interaction.message.embeds[0].data.author?.name
         if (!characterName) return
-        await interaction.editReply({
-          content: '処理中だぞ!!ちょっとまってくれよな!!',
-          embeds: [],
-          components: [],
-          files: [],
-        })
-        if (!interaction.guild) return
-        if (!interaction.member) return
-        const uid = this.client.inputCache.get(+interaction.member.user.id)
-        if (!uid) return
-        fs.appendFileSync(
-          'buildCard.log',
-          new Date().toISOString() + ` ${interaction.user.id} ${uid}\n`
-        )
-        const enkaData = this.client.enkaNetwork.cache.get(uid)
-        if (!enkaData || !enkaData.avatarInfoList || !enkaData.playerInfo)
-          return
-        const character = enkaData.avatarInfoList.find(
-          (character) => character.avatar.name == characterName
-        )
-        if (!character) return
+        await Promise.all([
+          (async (): Promise<void> => {
+            await interaction.editReply({
+              content: '処理中だぞ!!ちょっとまってくれよな!!',
+              embeds: [],
+              components: [],
+              files: [],
+            })
+          })(),
+          (async (): Promise<void> => {
+            const startTime = new Date().getTime() //log
+            if (!interaction.guild) return
+            if (!interaction.member) return
+            const enkaData = await this.enkaFetch(+interaction.member.user.id)
+            if (enkaData instanceof EmbedBuilder) {
+              await interaction.editReply({
+                embeds: [enkaData],
+                components: [],
+                files: [],
+              })
+              return
+            }
+            if (!enkaData.characterDetails.length) {
+              const embed = new EmbedBuilder()
+                .setTitle('🚫プロフィールが未公開又は未設定です')
+                .setDescription(
+                  'プロフィールが設定されていないか非表示に設定されているぞ!!\nこの状態だとビルドカードは生成出来ないから再設定しれくれよな!!',
+                )
+                .setFields({
+                  name: 'UID',
+                  value: `${+interaction.member.user.id}`,
+                })
+                .setImage('attachment://Howto.png')
+                .setFooter({ text: `Powered by Enka.Network` })
+              await interaction.editReply({
+                embeds: [embed],
+                files: ['./lib/buildCard/image/Howto.png'],
+              })
+              return
+            }
+            const character = enkaData.characterDetails.find(
+              (character) => character.name === characterName,
+            )
+            if (!character) return
 
-        const buildCard = new PartsCreator(
-          character,
-          String(enkaData.uid),
-          interaction.values[0] as ScoringType
-        )
-        const buffer = await buildCard.create(this.mainParts)
-        const embed = new EmbedBuilder()
-          .setAuthor({
-            name: character.avatar.name,
-            iconURL: character.avatar.iconURL,
-          })
-          .setDescription(
-            `${enkaData.playerInfo.nickname}・世界ランク${enkaData.playerInfo.worldLevel}・冒険ランク${enkaData.playerInfo.level}`
-          )
-          .setImage('attachment://buildCard.png')
+            const buffer = await new PartsCreator().create(
+              new BuildCard(
+                character,
+                String(enkaData.uid),
+                interaction.values[0] as ScoringType,
+              ),
+            )
+            const generateTime = new Date().getTime() - startTime
+            fs.appendFileSync(
+              './buildCard.log',
+              new Date().toISOString() +
+                ` ${interaction.user.id} ${+interaction.member.user.id} ${generateTime}ms usualMethod\n`,
+            )
+            const embed = new EmbedBuilder()
+              .setAuthor({
+                name: character.name,
+                iconURL: character.costume.icon.url,
+              })
+              .setDescription(
+                `${enkaData.playerDetail.nickname}・世界ランク${enkaData.playerDetail.worldLevel}・冒険ランク${enkaData.playerDetail.level}`,
+              )
+              .setImage('attachment://buildCard.png')
 
-        await interaction.editReply({
-          content: '',
-          embeds: [embed],
-          components: [
-            new ActionRowBuilder<CustomStringSelectMenuBuilder>().addComponents(
-              [this.characterSelectMenu(enkaData.avatarInfoList)]
-            ),
-            new ActionRowBuilder<CustomStringSelectMenuBuilder>().addComponents(
-              [this.scoringTypeSelectMenu()]
-            ),
-          ],
-          files: [new AttachmentBuilder(buffer, { name: 'buildCard.png' })],
-        })
+            await interaction.editReply({
+              content: '',
+              embeds: [embed],
+              components: [
+                new ActionRowBuilder<CustomStringSelectMenuBuilder>().addComponents(
+                  [this.characterSelectMenu(enkaData.characterDetails)],
+                ),
+                new ActionRowBuilder<CustomStringSelectMenuBuilder>().addComponents(
+                  [this.scoringTypeSelectMenu()],
+                ),
+              ],
+              files: [
+                new AttachmentBuilder(buffer, {
+                  name: 'buildCard.png',
+                }),
+              ],
+            })
+          })(),
+        ])
       },
     })
   }
 
-  private createButton() {
+  private async enkaFetch(uid: number): Promise<EnkaData | EmbedBuilder> {
+    try {
+      return await this.enkaManager.fetchAll(uid)
+    } catch (e) {
+      const embed = new EmbedBuilder().setFooter({
+        text: `Powered by Enka.Network`,
+      })
+      if (e instanceof EnkaManagerError) {
+        embed
+          .setTitle('🚫UIDのフォーマットが違います')
+          .setDescription(
+            'UIDが正しく無いぞ!もう一度最初からやり直してくれよな!!',
+          )
+          .setFields({ name: 'UID', value: String(uid) })
+        return embed
+      }
+      if (e instanceof EnkaNetworkError) {
+        switch (e.statusCode) {
+          case 400:
+            embed
+              .setTitle('🚫該当ユーザーが見つかりませんでした')
+              .setDescription(
+                'UIDが間違っていないか？もう一度確認してみてくれ!!\nErrorCode:400_UID_FORMAT_CHAUNENN',
+              )
+              .setFields({ name: 'UID', value: String(uid) })
+            break
+          case 404:
+            embed
+              .setTitle('🚫該当ユーザーが見つかりませんでした')
+              .setDescription(
+                'UIDが間違っていないか？もう一度確認してみてくれ!!\nErrorCode:404_SONNA_UID_SHIRAN',
+              )
+              .setFields({ name: 'UID', value: String(uid) })
+            break
+          case 424:
+            embed
+              .setTitle('⚠原神サーバーのエラー⚠')
+              .setDescription(
+                `ゲームサーバーのエラーにより処理が停止しています。\n時間を置いてお試しください。\n要因:ゲームメンテナンス等\nErrorCode:424_GENSHIN_MAINTENANCE_CHOIMATE`,
+              )
+            break
+          case 429:
+            embed
+              .setTitle('⚠EnkaNetWorkのエラー⚠')
+              .setDescription(
+                `過剰リクエストによりサービスが停止しています。\n時間を置いてお試しください。\nErrorCode:429_KAJOU_NI_ENKA_NETWORK_TUKAISUGITA`,
+              )
+            break
+          case 500:
+            embed
+              .setTitle('⚠EnkaNetWorkのエラー⚠')
+              .setDescription(
+                `サーバーエラーにより処理が停止しています。\n時間を置いてお試しください。\nErrorCode:500_ENKA_NETWORK_DOWN_SHITORU`,
+              )
+            break
+          case 503:
+            embed
+              .setTitle('⚠EnkaNetWorkのエラー⚠')
+              .setDescription(
+                `サーバーエラーにより処理が停止しています。\n時間を置いてお試しください。\nErrorCode:500_ENKA_NETWORK_YABAI_DOWN_SHITORU`,
+              )
+            break
+          default:
+            embed
+              .setTitle('⚠エラーが発生しました⚠')
+              .setDescription(
+                `ErrorCode:NANYA_KONO_ERROR\nStatus:${e.statusCode}`,
+              )
+            break
+        }
+        return embed
+      } else {
+        throw e
+      }
+    }
+  }
+
+  private createButton(): CustomButtonBuilder {
     return new CustomButtonBuilder(this.client, {
       customId: 'buildCard-createButton',
       style: ButtonStyle.Success,
       label: 'ビルドカードを生成する!!',
       emoji: '🔨',
-      execute: async (interaction) => {
+      execute: async (interaction): Promise<void> => {
+        if (
+          !interaction.member ||
+          !(interaction.member.roles instanceof GuildMemberRoleManager)
+        )
+          return
         await interaction.showModal(this.uidInputModal(interaction.user.id))
       },
     })
   }
 
-  async deploy() {
-    this.buildChannel = (await findGuildTextChannel(
-      this.client,
-      this.BUILD_CHANNEL_ID
-    )) as TextChannel
-    if (!this.buildChannel) return
-    const messageToGenerateCard = await getFirstMessage(
-      this.buildChannel.messages
-    )
-    const embedToGenerateCard = new EmbedBuilder()
-      .setTitle('📇ビルドカード')
-      .setDescription(
-        '⚖**スコア計算式**\n' +
-          '> 本機能ではスコア平滑化の為、以下のように計算式を調整しています。\n' +
-          '> `スコア = 会心率×2 + 会心ダメージ + HP`\n' +
-          '> `スコア = 会心率×2 + 会心ダメージ + 攻撃力`\n' +
-          '> `スコア = 会心率×2 + 会心ダメージ + 元素熟知×0.25`\n'
-      )
-    const messageOption = {
-      embeds: [embedToGenerateCard],
-      components: [
-        new ActionRowBuilder<CustomButtonBuilder>().addComponents([
-          this.createButton(),
-        ]),
-      ],
+  private secretSelectMenuAppend(
+    userId: string,
+    interaction: StringSelectMenuInteraction,
+  ): void {
+    const secretSelectLogger = this.secretSelectLogger.get(userId)
+    if (!secretSelectLogger) {
+      this.secretSelectLogger.set(userId, [+interaction.values[0] + 1])
+      return
     }
-    if (!messageToGenerateCard || !messageToGenerateCard.author.bot) {
-      await this.buildChannel.bulkDelete(100)
-      await this.buildChannel.send(messageOption)
-    } else {
-      await messageToGenerateCard.edit(messageOption)
-    }
+    if (secretSelectLogger.length >= 4) secretSelectLogger.shift()
+
+    secretSelectLogger.push(+interaction.values[0] + 1)
+    this.secretSelectLogger.set(userId, secretSelectLogger)
   }
 }
 
 class CharacterEmbedBuilder extends EmbedBuilder {
-  private embedColorConfig: { [key: string]: `#${string}` } = {
+  private embedColorConfig: { [key in Element]: `#${string}` } = {
     Cryo: '#00ffff',
     Anemo: '#00ff7f',
     Electro: '#ff00ff',
@@ -338,35 +503,35 @@ class CharacterEmbedBuilder extends EmbedBuilder {
     Geo: '#daa520',
     Pyro: '#ff0000',
     Dendro: '#00ff00',
+    Phys: '#808080', //don't use
   }
 
-  constructor(playerInfo: PlayerInfo, character: AvatarInfo) {
+  constructor(playerInfo: PlayerDetail, character: CharacterDetail) {
     super()
-    const talentCount = character.talentList.filter(
-      (talent) => !talent.locked
+    const constellationCount = character.constellations.filter(
+      (constellation) => !constellation.locked,
     ).length
     this.setAuthor({
-      name: character.avatar.name,
-      iconURL: character.avatar.iconURL,
+      name: character.name,
+      iconURL: character.costume.icon.url,
     })
     this.setDescription(
-      `${playerInfo.nickname}・世界ランク${playerInfo.worldLevel}・冒険ランク${playerInfo.level}`
+      `${playerInfo.nickname}・世界ランク${playerInfo.worldLevel}・冒険ランク${playerInfo.level}`,
     )
-    this.setThumbnail(character.weapon.iconURL)
+    this.setThumbnail(character.weapon.icon.url)
     this.setFields(
       {
         name: '武器',
         value:
-          `Lv.${character.weapon.level} **${character.weapon.name}** R${
-            character.weapon.refinementRank + 1
-          }\n` + this.weaponStatusText(character.weapon),
+          `Lv.${character.weapon.level} **${character.weapon.name}** R${character.weapon.refinementRank}\n` +
+          this.weaponStatusText(character.weapon),
       },
       { name: 'ステータス', value: this.characterStatusText(character) },
       {
         name: '命ノ星座',
         value: `[${
-          '<:Con_true:1034419483814678558>'.repeat(talentCount) +
-          '<:Con_false:1034419486469668874>'.repeat(6 - talentCount)
+          '<:Con_true:1034419483814678558>'.repeat(constellationCount) +
+          '<:Con_false:1034419486469668874>'.repeat(6 - constellationCount)
         }]`,
         inline: true,
       },
@@ -374,123 +539,61 @@ class CharacterEmbedBuilder extends EmbedBuilder {
         name: '天賦',
         value: `${character.skills
           .map((skill) =>
-            skill.extraLevel > 0 ? `**${skill.level}**` : skill.level
+            skill.extraLevel > 0 ? `**${skill.level}**` : skill.level,
           )
           .join('/')}`,
         inline: true,
-      }
+      },
     )
     this.setFooter({
       text: `Lv.${character.level}/90・好感度${character.friendShipLevel}`,
     })
-    this.setColor(this.embedColorConfig[character.avatar.element])
+    this.setColor(this.embedColorConfig[character.element as Element])
   }
 
-  private weaponStatusText(weapon: Weapon) {
+  private weaponStatusText(weapon: Weapon): string {
     return (
-      `<:ATK:1034111750854946886> 基礎攻撃力:${weapon.mainStat.value}\n` +
-      (weapon.subStat
-        ? `${this.getWeaponSubEmoji(weapon.subStat.name)} ${
-            weapon.subStat.name
-          }:${convertStatValue(weapon.subStat.propType, weapon.subStat.value)}`
+      `<:ATK:1034111750854946886> 基礎攻撃力:${weapon.stats[0].valueText}\n` +
+      (weapon.stats.length > 1
+        ? `${this.getWeaponSubEmoji(weapon.stats[1].type)} ${
+            weapon.stats[1].name
+          }:${weapon.stats[1].valueText}`
         : '')
     )
   }
 
-  private characterStatusText(character: AvatarInfo) {
-    const fightProp = character.fightPropMap
-    if (!character.client.textMap) return ''
-    const [DMGBonusPropType, DMGBonusValue] = this.getDMGBonusData(fightProp)
-    const DMGBonusEmoji = this.getDMGBonusEmoji(DMGBonusPropType)
-    const DMGBonusName = character.client.textMap[DMGBonusPropType]
+  private characterStatusText(character: CharacterDetail): string {
+    const combatStatus = character.combatStatus
+    const damageBonusEmoji = this.getDMGBonusEmoji(
+      character.combatStatus.sortedDamageBonus[0].type,
+    )
+    const damageBonusName = character.combatStatus.sortedDamageBonus[0].name
 
+    const healthDiff = (+(
+      combatStatus.maxHealth.value - combatStatus.healthBase.value
+    ).toFixed()).toLocaleString()
+    const attackDiff = (+(
+      combatStatus.attack.value - combatStatus.attackBase.value
+    ).toFixed()).toLocaleString()
+    const defenseDiff = (+(
+      combatStatus.defense.value - combatStatus.defenseBase.value
+    ).toFixed()).toLocaleString()
     return (
-      `<:HP:1034111772879224982> HP上限:${convertStatValue(
-        'FIGHT_PROP_HP',
-        fightProp.MaxHP || 0
-      )}(${convertStatValue(
-        'FIGHT_PROP_HP',
-        fightProp.BaseHP || 0
-      )}+${convertStatValue(
-        'FIGHT_PROP_HP',
-        (fightProp.ParamHP || 0) +
-          (fightProp.ParamHPPercent || 0) * (fightProp.BaseHP || 0)
-      )})\n` +
-      `<:ATK:1034111750854946886> 攻撃力:${convertStatValue(
-        'FIGHT_PROP_ATTACK',
-        fightProp.ATK || 0
-      )}(${convertStatValue(
-        'FIGHT_PROP_ATTACK',
-        fightProp.BaseATK || 0
-      )}+${convertStatValue(
-        'FIGHT_PROP_ATTACK',
-        (fightProp.ParamATK || 0) +
-          (fightProp.ParamATKPercent || 0) * (fightProp.BaseATK || 0)
-      )})\n` +
-      `<:DEF:1034111757981077514> 防御力:${convertStatValue(
-        'FIGHT_PROP_DEFENSE',
-        fightProp.DEF || 0
-      )}(${convertStatValue(
-        'FIGHT_PROP_DEFENSE',
-        fightProp.BaseDEF || 0
-      )}+${convertStatValue(
-        'FIGHT_PROP_DEFENSE',
-        (fightProp.ParamDEF || 0) +
-          (fightProp.ParamDEFPercent || 0) * (fightProp.BaseDEF || 0)
-      )})\n` +
-      `<:EM:1034111763148443678> 元素熟知:${convertStatValue(
-        'FIGHT_PROP_ELEMENT_MASTERY',
-        fightProp.ElementalMastery || 0
-      )}\n` +
-      `<:CR:1034111754495598685> 会心率:${convertStatValue(
-        'FIGHT_PROP_CRITICAL',
-        (fightProp.CRITRate || 0) * 100
-      )}\n` +
-      `<:CD:1034111752499122206> 会心ダメージ:${convertStatValue(
-        'FIGHT_PROP_CRITICAL_HURT',
-        (fightProp.CRITDMG || 0) * 100
-      )}\n` +
-      `<:ER:1034111765044273162> 元素チャージ効率:${convertStatValue(
-        'FIGHT_PROP_CHARGE_EFFICIENCY',
-        (fightProp.EnergyRecharge || 0) * 100
-      )}\n` +
-      (DMGBonusName && DMGBonusEmoji
-        ? `${DMGBonusEmoji} ${DMGBonusName}:${convertStatValue(
-            DMGBonusPropType,
-            DMGBonusValue
-          )}`
+      `<:HP:1034111772879224982> HP上限:${combatStatus.maxHealth.valueText}(${combatStatus.healthBase.valueText}+${healthDiff})\n` +
+      `<:ATK:1034111750854946886> 攻撃力:${combatStatus.attack.valueText}(${combatStatus.attackBase.valueText}+${attackDiff})\n` +
+      `<:DEF:1034111757981077514> 防御力:${combatStatus.defense.valueText}(${combatStatus.defenseBase.valueText}+${defenseDiff})\n` +
+      `<:EM:1034111763148443678> 元素熟知:${combatStatus.elementMastery.valueText}\n` +
+      `<:CR:1034111754495598685> 会心率:${combatStatus.critRate.valueText}\n` +
+      `<:CD:1034111752499122206> 会心ダメージ:${combatStatus.critDamage.valueText}\n` +
+      `<:ER:1034111765044273162> 元素チャージ効率:${combatStatus.chargeEfficiency.valueText}\n` +
+      (character.combatStatus.sortedDamageBonus[0].value > 0
+        ? `${damageBonusEmoji} ${damageBonusName}:${character.combatStatus.sortedDamageBonus[0].valueText}`
         : '')
     )
   }
-  private getDMGBonusData(
-    fightProp: Partial<{
-      [key in FightPropKeys]: number
-    }>
-  ): [PropType, number] {
-    const dmgBonusTypes: { [key in string]: PropType } = {
-      PhysicalDMGBonus: 'FIGHT_PROP_PHYSICAL_ADD_HURT',
-      PyroDMGBonus: 'FIGHT_PROP_FIRE_ADD_HURT',
-      ElectroDMGBonus: 'FIGHT_PROP_ELEC_ADD_HURT',
-      HydroDMGBonus: 'FIGHT_PROP_WATER_ADD_HURT',
-      DendroDMGBonus: 'FIGHT_PROP_GRASS_ADD_HURT',
-      AnemoDMGBonus: 'FIGHT_PROP_WIND_ADD_HURT',
-      GeoDMGBonus: 'FIGHT_PROP_ROCK_ADD_HURT',
-      CryoDMGBonus: 'FIGHT_PROP_ICE_ADD_HURT',
-    }
-    const result = Object.entries(fightProp).reduce(
-      ([maxName, maxValue], [name, value]) => {
-        if (maxValue < value && Object.keys(dmgBonusTypes).includes(name))
-          return [name, value]
-        else return [maxName, maxValue]
-      },
-      ['', -1]
-    )
 
-    return [dmgBonusTypes[result[0]], result[1] * 100]
-  }
-
-  private getDMGBonusEmoji(propType: PropType) {
-    const dmgBonusEmojis: Partial<{ [key in PropType]: string }> = {
+  private getDMGBonusEmoji(propType: FightPropType): string | undefined {
+    const dmgBonusEmojis: Partial<{ [key in FightPropType]: string }> = {
       FIGHT_PROP_PHYSICAL_ADD_HURT: '<:Physical:1034111776255639592>',
       FIGHT_PROP_FIRE_ADD_HURT: '<:Pyro:1034111777912389744>',
       FIGHT_PROP_ELEC_ADD_HURT: '<:Electro:1034111761500094595>',
@@ -503,17 +606,17 @@ class CharacterEmbedBuilder extends EmbedBuilder {
     return dmgBonusEmojis[propType]
   }
 
-  private getWeaponSubEmoji(name: string) {
-    const weaponSubEmojis: { [key in string]: string } = {
-      物理ダメージ: '<:Physical:1034111776255639592>',
-      元素チャージ効率: '<:ER:1034111765044273162>',
-      元素熟知: '<:EM:1034111763148443678>',
-      会心率: '<:CR:1034111754495598685>',
-      会心ダメージ: '<:CD:1034111752499122206>',
-      HP: '<:HP_P:1034120891233226884>',
-      攻撃力: '<:ATK_P:1034120888221708378>',
-      防御力: '<:DEF_P:1034120889761009816>',
+  private getWeaponSubEmoji(propType: FightPropType): string | undefined {
+    const weaponSubEmojis: Partial<{ [key in FightPropType]: string }> = {
+      FIGHT_PROP_PHYSICAL_ADD_HURT: '<:Physical:1034111776255639592>',
+      FIGHT_PROP_CHARGE_EFFICIENCY: '<:ER:1034111765044273162>',
+      FIGHT_PROP_ELEMENT_MASTERY: '<:EM:1034111763148443678>',
+      FIGHT_PROP_CRITICAL: '<:CR:1034111754495598685>',
+      FIGHT_PROP_CRITICAL_HURT: '<:CD:1034111752499122206>',
+      FIGHT_PROP_HP_PERCENT: '<:HP_P:1034120891233226884>',
+      FIGHT_PROP_ATTACK_PERCENT: '<:ATK_P:1034120888221708378>',
+      FIGHT_PROP_DEFENSE_PERCENT: '<:DEF_P:1034120889761009816>',
     }
-    return weaponSubEmojis[name]
+    return weaponSubEmojis[propType]
   }
 }

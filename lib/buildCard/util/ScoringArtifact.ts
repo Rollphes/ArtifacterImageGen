@@ -1,16 +1,26 @@
-import { Artifact, ItemStats, PropType } from '@/lib/enkaManager'
+import { Artifact, FightPropType, StatProperty } from 'genshin-manager'
 
-const correctionStatsValue = (stats: ItemStats) => {
-  if (stats.propType == 'FIGHT_PROP_CRITICAL') return stats.value * 2
-  if (stats.propType == 'FIGHT_PROP_ELEMENT_MASTERY') return stats.value * 0.25
-  return stats.value
+function correctionStatsValue(stat: StatProperty): number {
+  const value = +stat.valueText.replace('%', '')
+
+  switch (stat.type) {
+    case 'FIGHT_PROP_CRITICAL':
+      return value * 2
+    case 'FIGHT_PROP_DEFENSE_PERCENT':
+      return value * 0.8
+    case 'FIGHT_PROP_ELEMENT_MASTERY':
+      return value * 0.25
+    case 'FIGHT_PROP_CHARGE_EFFICIENCY':
+      return value * 0.9
+    default:
+      return value
+  }
 }
+
 export type ScoringType = 'ATK' | 'DEF' | 'HP' | 'EM' | 'ER'
-export const scoringArtifact = (
-  artifact: Artifact,
-  type: ScoringType
-): number => {
-  const conversionFilter: { [key in ScoringType]: PropType[] } = {
+
+export function scoringArtifact(artifact: Artifact, type: ScoringType): number {
+  const conversionFilter: { [key in ScoringType]: FightPropType[] } = {
     HP: [
       'FIGHT_PROP_CRITICAL',
       'FIGHT_PROP_CRITICAL_HURT',
@@ -39,7 +49,7 @@ export const scoringArtifact = (
   }
 
   return artifact.subStats.reduce((result, stats) => {
-    if (conversionFilter[type].includes(stats.propType))
+    if (conversionFilter[type].includes(stats.type))
       return result + correctionStatsValue(stats)
     return result
   }, 0)

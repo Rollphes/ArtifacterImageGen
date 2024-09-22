@@ -9,8 +9,6 @@
 ## 動作環境
 [Node.js](https://nodejs.org/ja/)が使えれば基本どれでも動くと思います。<br>
 
-## 注意点(更新について)
-バージョン毎にファイルを更新する必要があり、./lib/enkaManager/json内のjsonファイルを[Enka.network](https://github.com/EnkaNetwork/API-docs)が提供しているstore内のjsonファイル(最新状態)に更新する必要があります<br>
 **コマンド未対応、パネルのみ動作します。(いずれ気が向いたら対応させます)**<br>
 
 ## 必要環境変数
@@ -29,6 +27,3 @@ npm run start
 ```
 npm run start
 ```
-
-## 偉大なるArtifacter製作者様
-[Hyugoさん(Twitter)](https://twitter.com/hyugo_genshin)
