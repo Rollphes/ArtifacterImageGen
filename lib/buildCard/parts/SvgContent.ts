@@ -49,10 +49,12 @@ export class SvgContent implements PartsConfigTypes {
     svgs.push(this.getScoringTypeSvg())
     svgs.push(
       this.getTotalScoreSvg(
-        this.characterDetail.artifacts.reduce(
-          (result, artifact) => result + scoringArtifact(artifact, this.type),
-          0,
-        ),
+        +this.characterDetail.artifacts
+          .reduce(
+            (result, artifact) => result + scoringArtifact(artifact, this.type),
+            0,
+          )
+          .toFixed(1),
       ),
     )
     this.characterDetail.artifacts.forEach((artifact) => {

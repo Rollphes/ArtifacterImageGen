@@ -31,7 +31,7 @@ export class TotalScoreRank implements PartsConfigTypes {
     )
 
     return await sharp(
-      `./lib/buildCard/image/scoringRank/${this.getScoreRank(totalScore)}.png`,
+      `./lib/buildCard/image/scoringRank/${this.getScoreRank(+totalScore)}.png`,
     )
       .png()
       .resize(62, 62)
