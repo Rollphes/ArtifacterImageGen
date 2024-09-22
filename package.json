@@ -6,7 +6,8 @@
     "start": "ts-node -r tsconfig-paths/register bin/index.ts",
     "lint": "eslint .",
     "debug": "node --max-old-space-size=460 --expose-gc --inspect -r tsconfig-paths/register -r ts-node/register bin/index.ts",
-    "test": "ts-node -r tsconfig-paths/register test/index.ts"
+    "test": "ts-node -r tsconfig-paths/register test/index.ts",
+    "create-buildCard-cache": "ts-node -r tsconfig-paths/register lib/buildCard/bin/createCache.ts"
   },
   "engines": {
     "node": ">=16.x"
