@@ -6,6 +6,9 @@
 もし問題点等あればissue等を用いて頂ければ幸いです。<br>
 もちろんTwitter(ユーザー名とID一緒です)やDiscordでも対応できます。<br>
 
+尚、本リポジトリは[genshin-manager](https://www.npmjs.com/package/genshin-manager)を用いています。
+この為、バージョン毎のメンテナンスは不要です。
+
 ## 動作環境
 [Node.js](https://nodejs.org/ja/)が使えれば基本どれでも動くと思います。<br>
 
