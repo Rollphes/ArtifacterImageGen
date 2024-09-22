@@ -1,5 +1,5 @@
 import { CharacterDetail } from 'genshin-manager'
-import sharp, { OverlayOptions } from 'sharp'
+import sharp, { ExtendOptions, OverlayOptions, ResizeOptions } from 'sharp'
 
 import {
   PartsConfigTypes,
@@ -48,14 +48,35 @@ export class Character implements PartsConfigTypes {
     characterDetail: CharacterDetail,
   ): Promise<OverlayOptions> {
     const rawArt = await characterDetail.costume.art.fetchBuffer()
-    const resizeArt = await sharp(rawArt)
+    const { width, height } = await sharp(rawArt).metadata()
+    const resizeOption: ResizeOptions = {
+      width: 1079,
+      height: 768,
+      background: { r: 255, g: 255, b: 255, alpha: 0 },
+    }
+    const extendOption: ExtendOptions = {
+      top: 0,
+      left: 0,
+      bottom: 0,
+      right: 0,
+      background: { r: 255, g: 255, b: 255, alpha: 0 },
+    }
+    const aspectRatio = (width ?? 0) / (height ?? 0)
+    if (aspectRatio === 2) {
+      resizeOption.fit = 'cover'
+    } else {
+      resizeOption.fit = 'contain'
+      extendOption.top = 50
+    }
+    const extendedArt = await sharp(rawArt).extend(extendOption).toBuffer()
+    const resizeArt = await sharp(extendedArt)
       .extract({
         left: 289,
         top: 0,
         width: 1439,
         height: 1024,
       })
-      .resize(1079, 768)
+      .resize(resizeOption)
       .toBuffer()
 
     return {
