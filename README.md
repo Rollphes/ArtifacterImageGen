@@ -52,6 +52,8 @@ npm run start-api
 2. APIで動作させた場合、大体RSS:200MB程度で動作します。
 3. 生成時間は初回時にEnkaNetworkから取得する関係上3秒、以降1分間のキャッシュ生存時は300msとなります。
 4. スコア計算式やランク等に関してはArtifacterに合わせてあります。
+5. `./cache`はgenshin-managerで生成されるキャッシュであり、jsonデータやキャラクター画像等のデータが保存されていきます。
+6. `./lib/buildCard/image/cache`は本リポジトリで生成されるビルドカードのパーツに関するキャッシュが保存されていきます。
 
 ## カスタマイズ
 #### スコア計算方式を変更したい!
@@ -62,3 +64,10 @@ npm run start-api
 #### ランクの閾値を変更したい!
 - 聖遺物の下部に表示されるランクの閾値を変更したい場合は、`./lib/buildCard/parts/ArtifactScoreRank.ts`の`getScoreRank`メソッドを変更ください。
 - トータルスコアに表示されるランクの閾値を変更したい場合は、`./lib//buildCard/parts/TotalScoreRank.ts`の`getScoreRank`メソッドを変更ください。
+
+## 便利npmコマンド
+以下のコマンドにて、本リポジトリが生成する一部キャッシュを事前に生成する事が出来ます。
+```
+npm run create-buildCard-cache
+```
+
