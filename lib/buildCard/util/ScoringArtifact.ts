@@ -6,12 +6,8 @@ function correctionStatsValue(stat: StatProperty): number {
   switch (stat.type) {
     case 'FIGHT_PROP_CRITICAL':
       return value * 2
-    case 'FIGHT_PROP_DEFENSE_PERCENT':
-      return value * 0.8
     case 'FIGHT_PROP_ELEMENT_MASTERY':
       return value * 0.25
-    case 'FIGHT_PROP_CHARGE_EFFICIENCY':
-      return value * 0.9
     default:
       return value
   }
