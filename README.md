@@ -22,7 +22,7 @@ build_channel => 導入サーバーのパネルを設置するチャンネルID�
 git clone https://github.com/Rollphes/ArtifacterImageGen.git
 cd ArtifacterImageGen
 npm install
-npm run start
+npm run start-bot
 ```
 ↓二回目以降
 ```
@@ -38,7 +38,7 @@ PORT => WebAPIServerのポート番号です。(省略時3000)
 git clone https://github.com/Rollphes/ArtifacterImageGen.git
 cd ArtifacterImageGen
 npm install
-npm run start
+npm run start-api
 ```
 ↓二回目以降
 ```
