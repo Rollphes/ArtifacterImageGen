@@ -26,10 +26,12 @@ interface CustomLinkButtonComponentData
 }
 
 export class CustomButtonBuilder extends ButtonBuilder {
-  public execute: ButtonInteractionExecute = async () => {}
-  constructor(public client: Client, data: CustomButtonComponentData) {
+  constructor(
+    public client: Client,
+    data: CustomButtonComponentData,
+  ) {
     super(Object.assign({ type: ComponentType.Button }, data))
-    if (data.style == ButtonStyle.Link || !data.execute) return this
+    if (data.style === ButtonStyle.Link || !data.execute) return this
     this.client.interactionExecute.set(data.customId, {
       componentType: ComponentType.Button,
       customId: data.customId,
@@ -38,7 +40,9 @@ export class CustomButtonBuilder extends ButtonBuilder {
     this.execute = data.execute
   }
 
-  setExecute(execute: ButtonInteractionExecute): this {
+  public execute: ButtonInteractionExecute = async () => {}
+
+  public setExecute(execute: ButtonInteractionExecute): this {
     this.execute = execute
     return this
   }

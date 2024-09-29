@@ -14,8 +14,10 @@ interface CustomRoleSelectMenuComponentData
 }
 
 export class CustomRoleSelectMenuBuilder extends RoleSelectMenuBuilder {
-  public execute: RoleSelectMenuInteractionExecute = async () => {}
-  constructor(public client: Client, data: CustomRoleSelectMenuComponentData) {
+  constructor(
+    public client: Client,
+    data: CustomRoleSelectMenuComponentData,
+  ) {
     super(Object.assign({ type: ComponentType.RoleSelect }, data))
     if (!data.execute) return this
     this.client.interactionExecute.set(data.customId, {
@@ -26,7 +28,9 @@ export class CustomRoleSelectMenuBuilder extends RoleSelectMenuBuilder {
     this.execute = data.execute
   }
 
-  setExecute(execute: RoleSelectMenuInteractionExecute): this {
+  public execute: RoleSelectMenuInteractionExecute = async () => {}
+
+  public setExecute(execute: RoleSelectMenuInteractionExecute): this {
     this.execute = execute
     return this
   }

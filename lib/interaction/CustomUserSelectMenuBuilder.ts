@@ -14,8 +14,10 @@ interface CustomUserSelectMenuComponentData
 }
 
 export class CustomUserSelectMenuBuilder extends UserSelectMenuBuilder {
-  public execute: UserSelectMenuInteractionExecute = async () => {}
-  constructor(public client: Client, data: CustomUserSelectMenuComponentData) {
+  constructor(
+    public client: Client,
+    data: CustomUserSelectMenuComponentData,
+  ) {
     super(Object.assign({ type: ComponentType.UserSelect }, data))
     if (!data.execute) return this
     this.client.interactionExecute.set(data.customId, {
@@ -26,7 +28,9 @@ export class CustomUserSelectMenuBuilder extends UserSelectMenuBuilder {
     this.execute = data.execute
   }
 
-  setExecute(execute: UserSelectMenuInteractionExecute): this {
+  public execute: UserSelectMenuInteractionExecute = async () => {}
+
+  public setExecute(execute: UserSelectMenuInteractionExecute): this {
     this.execute = execute
     return this
   }

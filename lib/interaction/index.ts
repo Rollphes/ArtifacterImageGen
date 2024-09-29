@@ -30,7 +30,7 @@ export {
 }
 
 export type StringSelectMenuInteractionExecute = (
-  interaction: StringSelectMenuInteraction
+  interaction: StringSelectMenuInteraction,
 ) => Promise<void>
 interface StringSelectMenuInteractionExecuteData {
   componentType: ComponentType.StringSelect
@@ -39,7 +39,7 @@ interface StringSelectMenuInteractionExecuteData {
 }
 
 export type UserSelectMenuInteractionExecute = (
-  interaction: UserSelectMenuInteraction
+  interaction: UserSelectMenuInteraction,
 ) => Promise<void>
 interface UserSelectMenuInteractionExecuteData {
   componentType: ComponentType.UserSelect
@@ -48,7 +48,7 @@ interface UserSelectMenuInteractionExecuteData {
 }
 
 export type RoleSelectMenuInteractionExecute = (
-  interaction: RoleSelectMenuInteraction
+  interaction: RoleSelectMenuInteraction,
 ) => Promise<void>
 interface RoleSelectMenuInteractionExecuteData {
   componentType: ComponentType.RoleSelect
@@ -57,7 +57,7 @@ interface RoleSelectMenuInteractionExecuteData {
 }
 
 export type MentionableSelectMenuInteractionExecute = (
-  interaction: MentionableSelectMenuInteraction
+  interaction: MentionableSelectMenuInteraction,
 ) => Promise<void>
 interface MentionableSelectMenuInteractionExecuteData {
   componentType: ComponentType.MentionableSelect
@@ -66,7 +66,7 @@ interface MentionableSelectMenuInteractionExecuteData {
 }
 
 export type ChannelSelectMenuInteractionExecute = (
-  interaction: ChannelSelectMenuInteraction
+  interaction: ChannelSelectMenuInteraction,
 ) => Promise<void>
 interface ChannelSelectMenuInteractionExecuteData {
   componentType: ComponentType.ChannelSelect
@@ -75,7 +75,7 @@ interface ChannelSelectMenuInteractionExecuteData {
 }
 
 export type ButtonInteractionExecute = (
-  interaction: ButtonInteraction
+  interaction: ButtonInteraction,
 ) => Promise<void>
 interface ButtonInteractionExecuteData {
   componentType: ComponentType.Button
@@ -84,7 +84,7 @@ interface ButtonInteractionExecuteData {
 }
 
 export type ModalSubmitInteractionExecute = (
-  interaction: ModalSubmitInteraction
+  interaction: ModalSubmitInteraction,
 ) => Promise<void>
 interface ModalSubmitInteractionExecuteData {
   componentType: ComponentType.TextInput

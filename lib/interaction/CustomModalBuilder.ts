@@ -27,8 +27,10 @@ interface CustomModalComponentData
 }
 
 export class CustomModalBuilder extends ModalBuilder {
-  public execute: ModalSubmitInteractionExecute = async () => {}
-  constructor(public client: Client, data: CustomModalComponentData) {
+  constructor(
+    public client: Client,
+    data: CustomModalComponentData,
+  ) {
     const modalData: ModalComponentData = {
       customId: data.customId,
       title: data.title,
@@ -51,7 +53,9 @@ export class CustomModalBuilder extends ModalBuilder {
     this.execute = data.execute
   }
 
-  setExecute(execute: ModalSubmitInteractionExecute): this {
+  public execute: ModalSubmitInteractionExecute = async () => {}
+
+  public setExecute(execute: ModalSubmitInteractionExecute): this {
     this.execute = execute
     return this
   }

@@ -14,10 +14,9 @@ interface CustomStringSelectMenuComponentData
 }
 
 export class CustomStringSelectMenuBuilder extends StringSelectMenuBuilder {
-  public execute: StringSelectMenuInteractionExecute = async () => {}
   constructor(
     public client: Client,
-    data: CustomStringSelectMenuComponentData
+    data: CustomStringSelectMenuComponentData,
   ) {
     super(Object.assign({ type: ComponentType.StringSelect }, data))
     if (!data.execute) return this
@@ -29,7 +28,9 @@ export class CustomStringSelectMenuBuilder extends StringSelectMenuBuilder {
     this.execute = data.execute
   }
 
-  setExecute(execute: StringSelectMenuInteractionExecute): this {
+  public execute: StringSelectMenuInteractionExecute = async () => {}
+
+  public setExecute(execute: StringSelectMenuInteractionExecute): this {
     this.execute = execute
     return this
   }

@@ -12,6 +12,5 @@ export default class Client extends OriginalClient {
     this.enkaManager = new EnkaManager()
     this.buildCardPanel = new BuildCardPanel(this)
     this.interactionExecute = new InteractionExecute(this)
-    this.inputCache = new Map()
   }
 }

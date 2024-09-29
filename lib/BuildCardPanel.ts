@@ -34,6 +34,10 @@ import { env, getFirstMessage } from '@/lib/util'
 
 export class BuildCardPanel {
   public enkaManager: EnkaManager = new EnkaManager()
+  /**
+   * @param key userId
+   * @param value uid
+   */
   private inputCache: Map<string, string> = new Map()
 
   private buildChannel?: TextChannel
@@ -77,7 +81,7 @@ export class BuildCardPanel {
   }
 
   private uidInputModal(userId: string): CustomModalBuilder {
-    const uid = this.client.inputCache.get(+userId)
+    const uid = this.inputCache.get(userId)
     return new CustomModalBuilder(this.client, {
       customId: 'buildCard-uidInputModal',
       title: 'UID入力画面',
@@ -121,7 +125,7 @@ export class BuildCardPanel {
           return
         }
 
-        this.client.inputCache.set(+interaction.member.user.id, +inputUid)
+        this.inputCache.set(interaction.member.user.id, inputUid)
 
         if (enkaData.characterDetails.length > 0) {
           embed

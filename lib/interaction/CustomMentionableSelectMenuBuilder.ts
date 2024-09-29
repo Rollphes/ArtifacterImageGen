@@ -14,10 +14,9 @@ interface CustomMentionableSelectMenuComponentData
 }
 
 export class CustomMentionableSelectMenuBuilder extends MentionableSelectMenuBuilder {
-  public execute: MentionableSelectMenuInteractionExecute = async () => {}
   constructor(
     public client: Client,
-    data: CustomMentionableSelectMenuComponentData
+    data: CustomMentionableSelectMenuComponentData,
   ) {
     super(Object.assign({ type: ComponentType.MentionableSelect }, data))
     if (!data.execute) return this
@@ -29,7 +28,9 @@ export class CustomMentionableSelectMenuBuilder extends MentionableSelectMenuBui
     this.execute = data.execute
   }
 
-  setExecute(execute: MentionableSelectMenuInteractionExecute): this {
+  public execute: MentionableSelectMenuInteractionExecute = async () => {}
+
+  public setExecute(execute: MentionableSelectMenuInteractionExecute): this {
     this.execute = execute
     return this
   }

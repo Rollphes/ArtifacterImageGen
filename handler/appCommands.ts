@@ -1,6 +1,8 @@
 import {
   ApplicationCommandData,
   ApplicationCommandType,
+  AutocompleteInteraction,
+  CacheType,
   ChatInputCommandInteraction,
   Client,
   Guild,
@@ -8,27 +10,45 @@ import {
   UserContextMenuCommandInteraction,
 } from 'discord.js'
 
-type executeTypes =
+type ExecuteTypes =
   | {
       type?: ApplicationCommandType.ChatInput
-      execute: (interaction: ChatInputCommandInteraction) => Promise<void>
+      execute: (
+        interaction: ChatInputCommandInteraction<CacheType>,
+      ) => Promise<void>
+      autoComplete?: (
+        interaction: AutocompleteInteraction<CacheType>,
+      ) => Promise<void>
     }
   | {
       type: ApplicationCommandType.Message
       execute: (
-        interaction: MessageContextMenuCommandInteraction
+        interaction: MessageContextMenuCommandInteraction<CacheType>,
       ) => Promise<void>
     }
   | {
       type: ApplicationCommandType.User
-      execute: (interaction: UserContextMenuCommandInteraction) => Promise<void>
+      execute: (
+        interaction: UserContextMenuCommandInteraction<CacheType>,
+      ) => Promise<void>
     }
-export type CustomApplicationCommandData = ApplicationCommandData & {
+interface ReplyConfig {
+  /**
+   * このコマンドの返信をephemeralにするか?
+   * @default false
+   */
   ephemeral?: boolean
+  /**
+   * deferReply事前実行するか?
+   * @default true
+   */
   deferReply?: boolean
-} & executeTypes
+}
+export type CustomApplicationCommandData = ApplicationCommandData &
+  ReplyConfig &
+  ExecuteTypes
 
 export const commandDatas: CustomApplicationCommandData[] = []
-export default async (client: Client, guild: Guild) => {
+export default async (client: Client, guild: Guild): Promise<void> => {
   await guild.commands.set(commandDatas)
 }

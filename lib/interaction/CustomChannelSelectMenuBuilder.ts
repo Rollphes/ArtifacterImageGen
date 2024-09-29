@@ -14,10 +14,9 @@ interface CustomChannelSelectMenuComponentData
 }
 
 export class CustomChannelSelectMenuBuilder extends ChannelSelectMenuBuilder {
-  public execute: ChannelSelectMenuInteractionExecute = async () => {}
   constructor(
     public client: Client,
-    data: CustomChannelSelectMenuComponentData
+    data: CustomChannelSelectMenuComponentData,
   ) {
     super(Object.assign({ type: ComponentType.ChannelSelect }, data))
     if (!data.execute) return this
@@ -29,7 +28,9 @@ export class CustomChannelSelectMenuBuilder extends ChannelSelectMenuBuilder {
     this.execute = data.execute
   }
 
-  setExecute(execute: ChannelSelectMenuInteractionExecute): this {
+  public execute: ChannelSelectMenuInteractionExecute = async () => {}
+
+  public setExecute(execute: ChannelSelectMenuInteractionExecute): this {
     this.execute = execute
     return this
   }
