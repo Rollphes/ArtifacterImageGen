@@ -1,16 +1,17 @@
-import express from 'express'
+import { serve } from '@hono/node-server'
 import {
   Client as GenshinManager,
   EnkaManager,
   EnkaManagerError,
   EnkaNetworkError,
 } from 'genshin-manager'
+import { Hono } from 'hono'
 
 import { ScoringType } from '@/lib/buildCard'
 import { BuildCard } from '@/lib/buildCard/parts'
 import { PartsCreator } from '@/lib/imageCreator'
 
-const app = express()
+const app = new Hono()
 
 const port = process.env.PORT || 3000
 
@@ -21,77 +22,87 @@ const genshinManagerClient = new GenshinManager({
 })
 const enkaManager = new EnkaManager()
 
-function startAPIServer(): void {
-  app.get('/:uid/:index/:scoringType', (req, res) => {
-    void (async (): Promise<void> => {
-      if (!isScoreType(req.params.scoringType)) {
-        res.status(400)
-        res.header('Content-Type', 'application/json')
-        res.send(
-          JSON.stringify({
-            message: 'scoringType must be one of ATK, DEF, HP, EM, ER',
-          }),
-        )
-        return
-      }
-      try {
-        const enkaData = await enkaManager.fetchAll(+req.params.uid)
-
-        if (enkaData.characterDetails.length <= +req.params.index) {
-          res.status(404)
-          res.header('Content-Type', 'application/json')
-          res.send(
-            JSON.stringify({
-              message: 'Character not found',
-            }),
-          )
-          return
-        }
-
-        const buffer = await new PartsCreator().create(
-          new BuildCard(
-            enkaData.characterDetails[+req.params.index],
-            req.params.uid,
-            req.params.scoringType,
-          ),
-        )
-        res.status(200)
-        res.header('Content-Type', 'image/png')
-        res.send(buffer)
-      } catch (e) {
-        if (e instanceof EnkaManagerError) {
-          res.status(401)
-          res.header('Content-Type', 'application/json')
-          res.send(
-            JSON.stringify({
-              message: e.message,
-            }),
-          )
-        }
-        if (e instanceof EnkaNetworkError) {
-          res.status(e.statusCode)
-          res.header('Content-Type', 'application/json')
-          res.send(
-            JSON.stringify({
-              message: e.message,
-            }),
-          )
-        }
-        throw e
-      }
-    })()
-  })
-
-  app.listen(port, () => {
-    void (async (): Promise<void> => {
-      await genshinManagerClient.deploy()
-      console.log(`API Server is running on port ${port}`)
-    })()
-  })
-}
-
 function isScoreType(type: string): type is ScoringType {
   return ['ATK', 'DEF', 'HP', 'EM', 'ER'].includes(type)
 }
 
-void startAPIServer()
+app.get('/:uid/:index/:scoringType', async (c) => {
+  const { uid, index, scoringType } = c.req.param()
+  if (!isScoreType(scoringType)) {
+    return new Response(
+      JSON.stringify({
+        message: 'scoringType must be one of ATK, DEF, HP, EM, ER',
+      }),
+      {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+  }
+  try {
+    const enkaData = await enkaManager.fetchAll(+uid)
+
+    if (enkaData.characterDetails.length <= +index) {
+      return new Response(
+        JSON.stringify({
+          message: 'Character not found',
+        }),
+        {
+          status: 404,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+    }
+
+    console.time('create')
+    const buffer = await new PartsCreator().create(
+      new BuildCard(enkaData.characterDetails[+index], uid, scoringType),
+    )
+    console.timeEnd('create')
+    return new Response(buffer, {
+      status: 200,
+      headers: {
+        'Content-Type': 'image/png',
+      },
+    })
+  } catch (e) {
+    if (e instanceof EnkaManagerError) {
+      return new Response(
+        JSON.stringify({
+          message: e.message,
+        }),
+        {
+          status: 401,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+    }
+    if (e instanceof EnkaNetworkError) {
+      return new Response(
+        JSON.stringify({
+          message: e.message,
+        }),
+        {
+          status: e.statusCode,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+    }
+    throw e
+  }
+})
+
+async function startServer(): Promise<void> {
+  await genshinManagerClient.deploy()
+  serve({ fetch: app.fetch, port: +port })
+  console.log(`API Server is running on port ${port}`)
+}
+void startServer()
