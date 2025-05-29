@@ -1,3 +1,8 @@
+> [!WARNING]
+> このリポジトリの更新を滅多にしていないのでアーカイブにしました。<br>
+> Discord.jsの更新及び、依存している[genshin-manager](https://www.npmjs.com/package/genshin-manager)の更新により、大幅な変更が発生しない限り大半は動作すると思います。<br>
+> ただし、[genshin-manager](https://www.npmjs.com/package/genshin-manager)はかなりの頻度で更新される為、使用する場合は最新バージョンを使用する事を推奨します。
+
 ## はじめに
 初めまして、Rollphesと言う者です。<br>
 このレポジトリは[Artifacterのジェネレータ](https://github.com/FuroBath/ArtifacterImageGen)を遊び半分でNode.jsでも動作する様に移植した物です。<br>
